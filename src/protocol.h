@@ -5,6 +5,7 @@
 enum class Type : uint32_t {
   invalid,
   buttonPressed,
+  developDemoEvent,
 };
 
 typedef struct struct_message
@@ -25,3 +26,11 @@ struct ButtonMessage : struct_message
   uint32_t value;
 };
 
+struct DevelopmentDemoMessage : struct_message
+{
+  DevelopmentDemoMessage()
+  : struct_message(Type::developDemoEvent)
+  {
+  }
+  uint32_t value;
+};

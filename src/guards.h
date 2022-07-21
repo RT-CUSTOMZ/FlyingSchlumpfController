@@ -12,6 +12,7 @@ namespace
             return esp_now_is_peer_exist(reinterpret_cast<const uint8_t *>(evt.mac.data()));
         }
     };
+    
     struct IsInPeeringModeAndPeerNotExist
     {
         template <class EVT, class FSM, class SourceState, class TargetState>

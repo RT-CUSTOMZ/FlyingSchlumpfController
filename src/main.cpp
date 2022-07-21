@@ -20,6 +20,8 @@
 
 #include "config.h"
 
+#include "webserver.h"
+
 MainFSM mainFSM;
 
 // callback function that will be executed when data is received
@@ -33,10 +35,10 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
 void setup()
 {
   // Initialize Serial Monitor
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   // Set device as a Wi-Fi Station
-  WiFi.mode(WIFI_STA);
+  InitWiFi();
 
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK)
