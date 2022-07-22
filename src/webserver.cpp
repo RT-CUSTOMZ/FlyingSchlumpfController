@@ -1,6 +1,7 @@
 #include "webserver.h"
 #include "config.h"
 #include <esp_now.h>
+#include "SPIFFS.h"
 
 JSONVar board;
 AsyncWebServer server(80);
@@ -21,24 +22,39 @@ void notFound(AsyncWebServerRequest *request) {
   request->send(404, "text/plain", "Not found");
 }
 
-void InitWiFi(){
-  WiFi.mode(WIFI_AP_STA);
-  
+void WaitUntilConnected(){
   // Set device as a Wi-Fi Station
+  WiFi.mode(WIFI_AP_STA);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
   }
 
+}
+
+void GetConnectionStatusInfo(){
   Serial.print("Station IP Address: ");
   Serial.println(WiFi.localIP());
   Serial.print("Wi-Fi Channel: ");
   Serial.println(WiFi.channel());
+}
 
+void HandleFileRequests(){
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/html", index_html);
+    request->send(SPIFFS, "/index.html");
   });
-  
+  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/style.css","text/css");
+  });
+  server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/favicon.ico","image/x-icon");
+  });
+  server.on("/favicon.png", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/favicon.png","image/png");
+  });
+}
+
+void HandleFormRequests(){
   // Send a GET request to <ESP_IP>/sendMessage?input1=<inputMessage>
   server.on("/sendMessage", HTTP_PUT, [] (AsyncWebServerRequest *request) {
     String inputMessage;
@@ -58,7 +74,9 @@ void InitWiFi(){
                                      + inputParam + ") with value: " + inputMessage +
                                      "<br><a href=\"/\">Return to Home Page</a>");
   });
-  server.onNotFound(notFound);
+
+}
+void HandleBrowserClientConnection(){
   events.onConnect([](AsyncEventSourceClient *client){
     if(client->lastId()){
       Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
@@ -67,6 +85,17 @@ void InitWiFi(){
     // and set reconnect delay to 1 second
     client->send("hello!", NULL, millis(), 10000);
   });
+}
+
+
+void InitWiFi(){
+  WaitUntilConnected();
+  GetConnectionStatusInfo();
+  HandleFileRequests();
+  HandleFormRequests();
+  HandleBrowserClientConnection();
+  
+  server.onNotFound(notFound);
   server.addHandler(&events);
   server.begin();
 }

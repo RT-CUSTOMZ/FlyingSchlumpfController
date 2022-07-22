@@ -19,6 +19,8 @@
 
 #include "webserver.h"
 
+#include "FileSystem.h"
+
 MainFSM mainFSM;
 
 // callback function that will be executed when data is received
@@ -35,6 +37,9 @@ void setup()
 {
   // Initialize Serial Monitor
   Serial.begin(115200);
+
+  // Initialize SPIFFS
+  InitSPIFFS();
 
   // Set device as a Wi-Fi Station
   InitWiFi();
