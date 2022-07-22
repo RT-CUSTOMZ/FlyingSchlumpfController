@@ -13,12 +13,9 @@
 
 #include <Arduino.h>
 
-#include <esp_now.h>
 #include <WiFi.h>
 
 #include <string_view>
-
-#include "config.h"
 
 #include "webserver.h"
 
