@@ -8,7 +8,6 @@ JSONVar board;
 AsyncWebServer server(80);
 AsyncEventSource events("/events");
 
-
 // REPLACE WITH YOUR RECEIVER MAC Address
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -21,12 +20,30 @@ void notFound(AsyncWebServerRequest *request) {
 }
 
 void WaitUntilConnected(){
-  // Set device as a Wi-Fi Station
-  WiFi.mode(WIFI_AP_STA);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
+
+  if(currentWIFIMode == WIFIMode::AP_STA){
+    // Set device as a Wi-Fi AP and Station
+    WiFi.mode(WIFI_AP_STA);
+    WiFi.begin(STAssid, STApassword);
+    
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(1000);
+    }
+
+  } else if (currentWIFIMode == WIFIMode::AP){
+    WiFi.mode(WIFI_AP);
+    
+    // Connect to Wi-Fi network with SSID and password
+    Serial.println("Setting AP (Access Point)…");
+
+    // Remove the password parameter, if you want the AP (Access Point) to be open
+    WiFi.softAP(APssid, APpassword);
+
+    IPAddress IP = WiFi.softAPIP();
+    Serial.print("AP IP address: ");
+    Serial.println(IP);
   }
+
 
 }
 
