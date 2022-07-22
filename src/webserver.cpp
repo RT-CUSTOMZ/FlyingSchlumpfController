@@ -2,14 +2,12 @@
 #include "config.h"
 #include <esp_now.h>
 #include "SPIFFS.h"
+#include "Credentials.h"
 
 JSONVar board;
 AsyncWebServer server(80);
 AsyncEventSource events("/events");
 
-// Replace with your network credentials (STATION)
-const char* ssid = "ReplaceSSID";
-const char* password = "ReplacePassword";
 
 // REPLACE WITH YOUR RECEIVER MAC Address
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
