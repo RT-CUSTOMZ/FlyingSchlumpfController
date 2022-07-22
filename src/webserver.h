@@ -15,7 +15,9 @@ DevelopmentDemoMessage myDemoMessage;
 // REPLACE WITH YOUR RECEIVER MAC Address
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-const char* PARAM_INPUT_1 = "input1";
+ButtonMessage incomingButtonPressed;
+DevelopmentDemoMessage myDemoMessage;
+
 
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE HTML><html>
@@ -35,8 +37,8 @@ const char index_html[] PROGMEM = R"rawliteral(
     .button { max-width: 300px; margin: 0 auto; display: grid; grid-gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
     .reading { font-size: 2.8rem; }
     .packet { color: #bebebe; }
-    .card.temperature { color: #fd7e14; }
-    .card.humidity { color: #1b78e2; }
+    .card.speed { color: #fd7e14; }
+    .card.angle { color: #1b78e2; }
   </style>
 </head>
 <body>
@@ -45,21 +47,30 @@ const char index_html[] PROGMEM = R"rawliteral(
   </div>
   <div class="content">
     <div class="cards">
-      <div class="card temperature">
-        <h4><i class="fas fa-thermometer-half"></i> BOARD #1 - TEMPERATURE</h4><p><span class="reading"><span id="t1"></span> &deg;C</span></p><p class="packet">Reading ID: <span id="rt1"></span></p>
+      <div class="card speed">
+        <h4><i class="fas fa-speed"></i>Current Speed</h4><p><span class="reading"><span id="speed"></span> <sup>m</sup>&frasl;<sub>s</sub></span></p><p class="packet">Reading ID: <span id="rt1"></span></p>
+        <form action="/sendSpeed" target="hidden-form">
+          <input type="submit" class="card button" value="SubmitMessage"></button>
+        </form><br>
       </div>
-      <div class="card humidity">
-        <h4><i class="fas fa-tint"></i> BOARD #1 - HUMIDITY</h4><p><span class="reading"><span id="h1"></span> &percnt;</span></p><p class="packet">Reading ID: <span id="rh1"></span></p>
+      <div class="card angle">
+        <h4><i class="fas fa-angle"></i>Current Angle</h4><p><span class="reading"><span id="angle"></span> &deg;</span></p><p class="packet">Reading ID: <span id="rh1"></span></p>
+        <form action="/sendAngle" target="hidden-form">
+          <input type="submit" class="card button" value="SubmitMessage"></button>
+        </form><br>
       </div>
-      <div class="card temperature">
-        <h4><i class="fas fa-thermometer-half"></i> BOARD #2 - TEMPERATURE</h4><p><span class="reading"><span id="t2"></span> &deg;C</span></p><p class="packet">Reading ID: <span id="rt2"></span></p>
+      <div class="card lastpressedby">
+        <h4><i class="fas fa-last-pressed-by"></i> Last Button pressed by Player</h4><p><span class="lastpressed"><span id="t2"></span> #</span></p><p class="packet">Reading ID: <span id="rt2"></span></p>
       </div>
-      <div class="card humidity">
-        <h4><i class="fas fa-tint"></i> BOARD #2 - HUMIDITY</h4><p><span class="reading"><span id="h2"></span> &percnt;</span></p><p class="packet">Reading ID: <span id="rh2"></span></p>
+      <div class="card numberOfButtons">
+        <h4><i class="fas fa-number-of-buttons"></i> Number of Buttons</h4><p><span class="reading"><span id="numberofbuttons"></span> #</span></p><p class="packet">Reading ID: <span id="rh2"></span></p>
+        <form action="/sendMessage" target="hidden-form">
+          <input type="submit" class="card button" value="Enter Peering Mode"></button>
+        </form><br>
       </div>
     </div>
-    <form action="/get">
-      <input type="button" class="card button" value="Submit message"></button>
+    <form action="/sendMessage" target="hidden-form">
+      <input type="submit" class="card button" value="SubmitMessage"></button>
     </form><br>
   </div>
 <script>
@@ -82,15 +93,16 @@ if (!!window.EventSource) {
  source.addEventListener('new_readings', function(e) {
   console.log("new_readings", e.data);
   var obj = JSON.parse(e.data);
-  document.getElementById("t"+obj.id).innerHTML = obj.temperature.toFixed(2);
-  document.getElementById("h"+obj.id).innerHTML = obj.humidity.toFixed(2);
-  document.getElementById("rt"+obj.id).innerHTML = obj.readingId;
-  document.getElementById("rh"+obj.id).innerHTML = obj.readingId;
+  document.getElementById("speed").innerHTML = obj.speed.toFixed(2);
+  document.getElementById("angle").innerHTML = obj.angle.toFixed(2);
+  document.getElementById("lastpressed").innerHTML = obj.lastpressed;
+  document.getElementById("numberofbuttons").innerHTML = obj.numberofbuttons;
  }, false);
 }
 </script>
 </body>
 </html>)rawliteral";
+
 
 void notFound(AsyncWebServerRequest *request) {
   request->send(404, "text/plain", "Not found");
@@ -103,7 +115,6 @@ void InitWiFi(){
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
-    Serial.println("Setting as a Wi-Fi Station..");
   }
 
   Serial.print("Station IP Address: ");
@@ -115,16 +126,12 @@ void InitWiFi(){
     request->send_P(200, "text/html", index_html);
   });
   
-  // Send a GET request to <ESP_IP>/get?input1=<inputMessage>
-  server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
+  // Send a GET request to <ESP_IP>/sendMessage?input1=<inputMessage>
+  server.on("/sendMessage", HTTP_PUT, [] (AsyncWebServerRequest *request) {
     String inputMessage;
     String inputParam;
-    // GET input1 value on <ESP_IP>/get?input1=<inputMessage>
-    if (request->hasParam(PARAM_INPUT_1)) {
-      inputMessage = request->getParam(PARAM_INPUT_1)->value();
-      inputParam = PARAM_INPUT_1;
-    }
-    else {
+    // GET input1 value on <ESP_IP>/sendMessage?input1=<inputMessage>
+    
       static bool led_state = digitalRead(LedPinGreen);
       led_state = !led_state;
       digitalWrite(LedPinGreen, led_state);
@@ -133,7 +140,6 @@ void InitWiFi(){
 
       inputMessage = "No message sent";
       inputParam = "none";
-    }
     Serial.println(inputMessage);
     request->send(200, "text/html", "HTTP GET request sent to your ESP on input field (" 
                                      + inputParam + ") with value: " + inputMessage +
@@ -150,4 +156,12 @@ void InitWiFi(){
   });
   server.addHandler(&events);
   server.begin();
+}
+
+bool extractDataFromFrame (const uint8_t *incomingData){
+  memcpy(&incomingButtonPressed, incomingData, sizeof(incomingButtonPressed));
+  
+  // board["CurrentBatteryVoltage"] = incomingButtonPressed.value;
+  String jsonString = JSON.stringify(board);
+  events.send(jsonString.c_str(), "new_readings", millis());
 }

@@ -30,6 +30,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   mainFSM.process_event(Trigger{
       std::string_view{reinterpret_cast<const char *>(mac), 6},
       std::string_view{reinterpret_cast<const char *>(incomingData), static_cast<size_t>(len)}});
+
+  // extractDataFromFrame(incomingData);
 }
 
 void setup()
