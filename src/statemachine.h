@@ -1,7 +1,7 @@
 #pragma once
 
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
-#define BOOST_MPL_LIMIT_VECTOR_SIZE 10
+#define BOOST_MPL_LIMIT_VECTOR_SIZE 20
 
 #include <vector>
 #include <string_view>
@@ -26,6 +26,8 @@
 #include "actions.h"
 #include "guards.h"
 
+#include "MotorControl.h"
+
 namespace msm = boost::msm;
 namespace mpl = boost::mpl;
 using namespace msm::front;
@@ -41,6 +43,9 @@ namespace // Concrete FSM implementation
         std::string_view data;
     };
     struct Timeout
+    {
+    };
+    struct ButtonTrigger
     {
     };
 
@@ -89,16 +94,16 @@ namespace // Concrete FSM implementation
             template <class Event, class FSM>
             void on_entry(Event const &, FSM &fsm)
             {
+                std::cout << "Triggered" << std::endl;
                 std::cout << "led on" << std::endl;
                 digitalWrite(LedPinRed, LOW);
-                xTimerChangePeriod(fsm.xTimer, 500, 0);
+                MotorFreeWheeling();
+                xTimerChangePeriod(fsm.xTimer, 10, 0);
                 xTimerStart(fsm.xTimer, 0);
             }
             template <class Event, class FSM>
             void on_exit(Event const &, FSM &fsm)
             {
-                std::cout << "led off" << std::endl;
-                digitalWrite(LedPinRed, HIGH);
                 xTimerStop(fsm.xTimer, 0);
             }
         };
@@ -107,16 +112,80 @@ namespace // Concrete FSM implementation
             template <class Event, class FSM>
             void on_entry(Event const &, FSM &fsm)
             {
-                std::cout << "led on" << std::endl;
-                digitalWrite(LedPinYellow, LOW);
+                std::cout << "AckNewPeering" << std::endl;
+                digitalWrite(LedPinRed, LOW);
                 xTimerChangePeriod(fsm.xTimer, 100, 0);
                 xTimerStart(fsm.xTimer, 0);
             }
             template <class Event, class FSM>
             void on_exit(Event const &, FSM &fsm)
             {
+                digitalWrite(LedPinRed, HIGH);
+                xTimerStop(fsm.xTimer, 0);
+            }
+        };
+        struct DirectionSelected : public msm::front::state<>
+        {
+            template <class Event, class FSM>
+            void on_entry(Event const &, FSM &fsm)
+            {
+                std::cout << "DirectionSelected" << std::endl;
+                MotorRightRotation();
+                xTimerChangePeriod(fsm.xTimer, 10, 0);
+                xTimerStart(fsm.xTimer, 0);
+            }
+            template <class Event, class FSM>
+            void on_exit(Event const &, FSM &fsm)
+            {
+                xTimerStop(fsm.xTimer, 0);
+            }
+        };
+        struct RampUp : public msm::front::state<>
+        {
+            template <class Event, class FSM>
+            void on_entry(Event const &, FSM &fsm)
+            {
+                std::cout << "RampUp" << std::endl;
+                RampUpMotor();
+                xTimerChangePeriod(fsm.xTimer, 100, 0);
+                xTimerStart(fsm.xTimer, 0);
+            }
+            template <class Event, class FSM>
+            void on_exit(Event const &, FSM &fsm)
+            {
+                xTimerStop(fsm.xTimer, 0);
+            }
+        };
+        struct Drive : public msm::front::state<>
+        {
+            template <class Event, class FSM>
+            void on_entry(Event const &, FSM &fsm)
+            {
+                std::cout << "Drive" << std::endl;
+                xTimerChangePeriod(fsm.xTimer, 1, 0);
+                xTimerStart(fsm.xTimer, 0);
+            }
+            template <class Event, class FSM>
+            void on_exit(Event const &, FSM &fsm)
+            {
+                xTimerStop(fsm.xTimer, 0);
+            }
+        };
+        struct RampDown : public msm::front::state<>
+        {
+            template <class Event, class FSM>
+            void on_entry(Event const &, FSM &fsm)
+            {
+                std::cout << "RampDown" << std::endl;
+                RampDownMotor();
+                xTimerChangePeriod(fsm.xTimer, 1, 0);
+                xTimerStart(fsm.xTimer, 0);
+            }
+            template <class Event, class FSM>
+            void on_exit(Event const &, FSM &fsm)
+            {
                 std::cout << "led off" << std::endl;
-                digitalWrite(LedPinYellow, HIGH);
+                digitalWrite(LedPinRed, HIGH);
                 xTimerStop(fsm.xTimer, 0);
             }
         };
@@ -136,11 +205,16 @@ namespace // Concrete FSM implementation
         // clang-format off
             //    Start     Event         Next      Action                     Guard
             //  +---------+-------------+---------+---------------------------+----------------------+
-            msm::front::Row<Init,           none,    Idle>,
-            msm::front::Row<Idle,           Trigger, Triggered,     PrintIncomingPackage,   IsPeerExist>,
-            msm::front::Row<Idle,           Trigger, AckNewPeering, addPeer,                IsInPeeringModeAndPeerNotExist>,
-            msm::front::Row<AckNewPeering,  Timeout, Idle,          msm::front::none,       msm::front::none>,
-            msm::front::Row<Triggered,      Timeout, Idle,          msm::front::none,       msm::front::none>
+            msm::front::Row<Init,               none,    Idle>,
+            msm::front::Row<Idle,               Trigger, Triggered,     none,                   IsPeerExist>,
+            msm::front::Row<Idle,               ButtonTrigger, Triggered>,
+            msm::front::Row<Idle,               Trigger, AckNewPeering, addPeer,                IsInPeeringModeAndPeerNotExist>,
+            msm::front::Row<AckNewPeering,      Timeout, Idle,          msm::front::none,       msm::front::none>,
+            msm::front::Row<Triggered,          Timeout, DirectionSelected>,
+            msm::front::Row<DirectionSelected,  Timeout, RampUp>,
+            msm::front::Row<RampUp,             Timeout, Drive>,
+            msm::front::Row<Drive,              Timeout, RampDown>,
+            msm::front::Row<RampDown,           Timeout, Idle>
         // clang-format on
                                       >
         {

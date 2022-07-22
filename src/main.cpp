@@ -57,10 +57,23 @@ void setup()
     pinMode(pin, OUTPUT);
   }
 
+  for (auto pin : ButtonPins)
+  {
+    pinMode(pin, INPUT_PULLUP);
+  }
+
+  InitMotor();
+
   mainFSM.PeeringMode = true;
   mainFSM.start();
 }
 
 void loop()
 {
+  if (digitalRead(Button0) == LOW)
+  {
+    Serial.println("button 0 low");
+    mainFSM.process_event(ButtonTrigger());
+    delay(2000);
+  }
 }
