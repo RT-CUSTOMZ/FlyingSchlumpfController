@@ -32,15 +32,17 @@ void MotorFreeWheeling(){
 
 
 void RampUpMotor(uint8_t MotorSpeed){
-    for (int i=0; i<MotorSpeed; i++) { 
-        analogWrite(MotorEnable, i);
-        delay(10);
-    } 
+    digitalWrite(MotorEnable, HIGH);
+    // for (int i=50; i<MotorSpeed; i++) { 
+    //     analogWrite(MotorEnable, i);
+    //     delay(2);
+    // } 
 } 
 
 void RampDownMotor(uint8_t MotorSpeed){
-    for (int i=MotorSpeed; i>=0; i--) {
-        analogWrite(MotorEnable, i);
-        delay(10);
-    }
+    digitalWrite(MotorEnable, LOW);
+    // for (int i=MotorSpeed; i>=0; i--) {
+    //     analogWrite(MotorEnable, i);
+    //     delay(2);
+    // }
 }

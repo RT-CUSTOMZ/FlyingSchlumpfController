@@ -130,7 +130,12 @@ namespace // Concrete FSM implementation
             void on_entry(Event const &, FSM &fsm)
             {
                 std::cout << "DirectionSelected" << std::endl;
-                MotorRightRotation();
+                static bool direction = true;
+                if(direction)
+                    MotorRightRotation();
+                else
+                    MotorLeftRotation();
+                direction = !direction;
                 xTimerChangePeriod(fsm.xTimer, 10, 0);
                 xTimerStart(fsm.xTimer, 0);
             }
@@ -162,7 +167,7 @@ namespace // Concrete FSM implementation
             void on_entry(Event const &, FSM &fsm)
             {
                 std::cout << "Drive" << std::endl;
-                xTimerChangePeriod(fsm.xTimer, 1, 0);
+                xTimerChangePeriod(fsm.xTimer, 500, 0); // Zeit
                 xTimerStart(fsm.xTimer, 0);
             }
             template <class Event, class FSM>

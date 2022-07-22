@@ -14,7 +14,7 @@ constexpr int MotorPin1 {33};
 constexpr int MotorPin2 {32};
 constexpr int MotorEnable {13};
 
-constexpr uint8_t MaxPWMMotor {100};
+constexpr uint8_t MaxPWMMotor {150};
 constexpr bool LeftRotation {1};
 constexpr bool RightRotation {0};
 
