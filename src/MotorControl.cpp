@@ -1,10 +1,11 @@
 #include "MotorControl.h"
 
-
+#include "Arduino.h"
 
 void InitMotor(){
     pinMode(MotorPin1, OUTPUT);
     pinMode(MotorPin2, OUTPUT);
+    pinMode(MotorEnable, OUTPUT);
 }
 
 void MotorLeftRotation(){
@@ -31,15 +32,9 @@ void MotorFreeWheeling(){
 
 
 void RampUpMotor(uint8_t MotorSpeed){
-    for (int i=0; i<MaxPWMMotor; i++) { 
-        analogWrite(MotorEnable, i); 
-        delay(10); 
-    } 
+    digitalWrite(MotorEnable, HIGH);
 } 
 
 void RampDownMotor(uint8_t MotorSpeed){
-    for (int i=MaxPWMMotor; i>=0; i--) {
-        analogWrite(MotorEnable, i);
-        delay(10);
-    }
+    digitalWrite(MotorEnable, LOW);
 }

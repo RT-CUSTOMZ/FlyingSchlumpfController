@@ -75,10 +75,6 @@ void HandleFormRequests(){
     String inputMessage;
     String inputParam;
     // GET input1 value on <ESP_IP>/sendMessage?input1=<inputMessage>
-    
-      static bool led_state = digitalRead(LedPinGreen);
-      led_state = !led_state;
-      digitalWrite(LedPinGreen, led_state);
       // Send message via ESP-NOW
       esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)&myDemoMessage, sizeof(myDemoMessage));
 
