@@ -5,7 +5,6 @@
 void InitMotor(){
     pinMode(MotorPin1, OUTPUT);
     pinMode(MotorPin2, OUTPUT);
-    pinMode(led_pin, OUTPUT);
 }
 
 void MotorLeftRotation(){
@@ -31,14 +30,14 @@ void MotorFreeWheeling(){
 }
 
 
-void RampUpMotor(uint8_t MotorSpeed = MaxPWMMotor){
+void RampUpMotor(uint8_t MotorSpeed){
     for (int i=0; i<MaxPWMMotor; i++) { 
         analogWrite(MotorEnable, i); 
         delay(10); 
     } 
 } 
 
-void RampDownMotor(uint8_t MotorSpeed = MaxPWMMotor){
+void RampDownMotor(uint8_t MotorSpeed){
     for (int i=MaxPWMMotor; i>=0; i--) {
         analogWrite(MotorEnable, i);
         delay(10);
