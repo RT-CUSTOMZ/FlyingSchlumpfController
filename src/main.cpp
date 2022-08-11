@@ -13,12 +13,13 @@
 
 #include <Arduino.h>
 
-#include <esp_now.h>
 #include <WiFi.h>
 
 #include <string_view>
 
-#include "config.h"
+#include "webserver.h"
+
+#include "FileSystem.h"
 
 MainFSM mainFSM;
 
@@ -28,6 +29,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
   mainFSM.process_event(Trigger{
       std::string_view{reinterpret_cast<const char *>(mac), 6},
       std::string_view{reinterpret_cast<const char *>(incomingData), static_cast<size_t>(len)}});
+
+  // extractDataFromFrame(incomingData);
 }
 
 void setup()
@@ -35,8 +38,11 @@ void setup()
   // Initialize Serial Monitor
   Serial.begin(115200);
 
+  // Initialize SPIFFS
+  InitSPIFFS();
+
   // Set device as a Wi-Fi Station
-  WiFi.mode(WIFI_STA);
+  InitWiFi();
 
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK)
