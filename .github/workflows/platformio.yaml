@@ -14,9 +14,9 @@ jobs:
             ~/.cache/pip
             ~/.platformio/.cache
           key: ${{ runner.os }}-pio
-    - name: download and install boost
-      run: |
-        ./install-dependencies.sh
+      - name: download and install boost
+        run: |
+          ./install-dependencies.sh
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
