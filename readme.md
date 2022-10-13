@@ -1,3 +1,5 @@
+[![PlatformIO CI](https://github.com/RT-CUSTOMZ/FlyingSchlumpfController/actions/workflows/platformio.yaml/badge.svg)](https://github.com/RT-CUSTOMZ/FlyingSchlumpfController/actions/workflows/platformio.yaml)
+
 # Prerequisites
 Download the current boost Lib from the [Boost Library](https://www.boost.org/users/download/).
 unzip the files. Usually the resulting Folder will be named something like "boost_1_79_0".
