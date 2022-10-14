@@ -28,3 +28,8 @@ jobs:
 
       - name: Build Filesystem Image
         run: pio run --target buildfs --environment pico32
+        
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bin
+          path: .pio/build/**/*.bin
