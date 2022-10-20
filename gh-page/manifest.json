@@ -1,0 +1,17 @@
+{
+  "name": "FlyingSchlumpf",
+  "version": "0.0.1",
+  "funding_url": "https://github.com/RT-CUSTOMZ/FlyingSchlumpfController",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        { "path": "firmware/pico32/bootloader.bin", "offset": 4096 },
+        { "path": "firmware/pico32/partitions.bin", "offset": 32768 },
+        { "path": "firmware/pico32/firmware.bin", "offset": 65536 },
+        { "path": "firmware/pico32/spiffs.bin", "offset": 2686976 }
+      ]
+    }
+  ]
+}
